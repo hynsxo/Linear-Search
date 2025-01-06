@@ -18,4 +18,4 @@
 - 다익스트라 경로 계산, 선택된 y 값을 이용해 다익스트라 알고리즘을 통해 최적 경로를 계산
 > y 범위 내 값들의 끝 값이 되지 않기 위함
 
-<img src="./images/image1.jpg" alt="MATLAB images">
+<img src="./images/image1.png" alt="MATLAB images">
