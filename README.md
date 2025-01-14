@@ -38,6 +38,73 @@ S(x) = 5.05 + 0.795789(x - 4.5) + -7.34368(x - 4.5)^2 + 2.44789(x - 4.5)^3
 </pre>
 
 ---
+**다익스트라 평균법과 threshold 적용**
+- 예상 효과: 보다 적은 y값의 변화를 위함 (모터 부하 최소화의 목적)
+- 방법
+  - 다음, 다다음, 다다다음 값을 미리 읽어와, 각각 기울기를 구하여 평균을 냄
+  - 평균 값이 다음 y값 범위 내를 지나지 않으면, 다음 값만 보는 다익스트라 값 적용
+  - 지난다면 평균 값 적용
+  - threshold를 적용하여, 0.5 라디안 이내 움직임이라면 움직이지 않게 함 (현재 다익스트라 알고리즘으로 가장 최단거리 값이 아닌 상위 10퍼센트 값을 받아오므로, y 범위가 일정할 때 지속되는 움직임 방지를 위함)
+<pre>
+// 다익스트라 평균
+double t3, t4; // 3번째 4번째 시간 값
+
+vector<double> x_values1 = {t1, t2}; // 현재 x값과 다음 x값
+vector<pair<double, double>> y_ranges1 = {{lineData(0,1), lineData(0,2)}, {lineData(1,1), lineData(1,2)}};
+
+vector<double> x_values2 = {t1, t3}; // 현재 x값과 다다음 x값
+vector<pair<double, double>> y_ranges2 = {{lineData(0,1), lineData(0,2)}, {lineData(2,1), lineData(2,2)}};
+
+vector<double> x_values3 = {t1, t4}; // 현재 x값과 다다다음 x값
+vector<pair<double, double>> y_ranges3 = {{lineData(0,1), lineData(0,2)}, {lineData(3,1), lineData(3,2)}};
+
+try {
+    if(status == 1){
+        q0_t1 = nextq0_t1;
+    }
+    double q0_n2, q0_n3, q0_n4;
+
+    q0_n2 = dijkstra_top10_with_median(x_values1, y_ranges1, q0_t1);
+    double a1 = (q0_n2-q0_t1) / (t2 - t1);
+
+    q0_n3 = dijkstra_top10_with_median(x_values2, y_ranges2, q0_t1);
+    double a2 = (q0_n3-q0_t1) / (t3 - t1);
+        
+        q0_n4 = dijkstra_top10_with_median(x_values3, y_ranges3, q0_t1);
+        double a3 = (q0_n4-q0_t1) / (t4 - t1);
+        
+        double a_avg = (a1 + a2 + a3) / 3;
+        double next_qy = a_avg * (t2-t1);
+        
+        if(next_qy >= lineData(1,1) && next_qy <= lineData(1,2)){ // 다익스트라 평균 값이 다음 y범위 내에 존재 하는 경우
+            q0_t2 = next_qy;
+        }
+        else{ // 범위 밖이라면, 다음 허리 값을 평균말고 다익스트라만 적용
+            q0_t2 = dijkstra_top10_with_median(x_values1, y_ranges1, q0_t1);
+        }
+
+        if(abs(q0_t2 - q0_t1) <= qthreshold){
+            if(q0_t1 > lineData(1,1) && q0_t1 < lineData(1,2)){
+                status = 0;
+            }
+            else{
+                nextq0_t1 = q0_t1;
+                status = 1;
+            }
+        }
+        else{
+            status = 0;
+        }
+
+    } catch (const exception& e) {
+        cerr << e.what() << endl;
+    }
+    break;
+}
+</pre>
+
+
+---
 
 
 **linearsearch.cpp 파일**
